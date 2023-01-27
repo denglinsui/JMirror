@@ -102,7 +102,7 @@ JointMirror.R <- function(Pval,init.thred=0.2,
   rank_Mode <- switch(rank.Mode,"Product"=1,
                       "Pmax"=2,"Max"=2,3)
   JMirrorSolver <- new(JointMirror,Pval,Hker.inv.chol)
-  cat("Run JM procedure...... \n")
+  #cat("Run JM procedure...... \n")
   JMirrorSolver$InitPara(offset_=offset,fdr_level_=trgt.fdr.level,
                          init_p_cut_=init.thred,rank_Mode_=rank_Mode)
   JMirrorSolver$runJM()
