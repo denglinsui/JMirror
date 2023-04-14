@@ -1,17 +1,17 @@
-#include "JointMirror.hpp"
+#include "JointMirror.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-JointMirror::JointMirror( mat Pval_, mat HMat_){
+JointMirror::JointMirror( arma::mat Pval_, arma::mat HMat_){
   PVal=Pval_;
   ProjPval=min(PVal,1-PVal);
   HMat=HMat_;
-  
+
   DistPval=ProjPval*HMat;
-  
+
   K = PVal.n_cols;
   m = PVal.n_rows;
-  
+
 }
 
 void JointMirror::InitPara(double offset_, double fdr_level_,
@@ -25,63 +25,63 @@ void JointMirror::InitPara(double offset_, double fdr_level_,
 
 void JointMirror::InitData(){
   //Rcpp::Rcout << "InitData" <<  std::endl;
-  
+
   //Rcpp::Rcout << "11"<<  std::endl;
   ProbInRej = zeros(m);
   ProbInRej_de = zeros(m);
   ProbInRej_en = zeros(m);
-  
+
   out_degree = zeros(m);
-  in_degree = zeros<rowvec>(m);
-  unmaskInd = zeros<uvec>(m);
+  in_degree = zeros<arma::rowvec>(m);
+  unmaskInd = zeros<arma::uvec>(m);
   unmaskInd.fill(m);
   rootNum=0;
-  
-  
+
+
   //Rcpp::Rcout << "22" <<  std::endl;
   childInd.resize(m);
   parentInd.resize(m);
-  
+
   RejSide = zeros(m);
   for(int i=0;i<m;i++){
     RejSide(i) = all(PVal.row(i)<0.5);
   }
   RejCount=0;
   ControlCount=0;
-    
+
   // Initialize exclude and unmask index
-  vec excludeLogi = zeros(m);
-  vec unmaskLogi = zeros(m);
+  arma::vec excludeLogi = zeros(m);
+  arma::vec unmaskLogi = zeros(m);
   for(int i=0;i<m;i++){
     excludeLogi(i) = sum(PVal.row(i)>=0.5)>1;
     unmaskLogi(i) = max(0.0,
                (max(ProjPval.row(i))>=init_p_cut)-excludeLogi(i));
   }
 //  unmaskLogi <- max(zeros(m),unmaskLogi-excludeLogi);
-  
+
   unmaskNum = sum(unmaskLogi);
-  unmaskInd(regspace<uvec>(0,unmaskNum-1)) = find(unmaskLogi==1);
-  
+  unmaskInd(regspace<arma::uvec>(0,unmaskNum-1)) = find(unmaskLogi==1);
+
   excludeInd = find(excludeLogi==1);
-  
+
   maskInd = find(excludeLogi==0&&unmaskLogi==0);
-  
+
   maskLogi.ones(m);
   maskLogi(find(excludeLogi==1||unmaskLogi==1)).zeros();
-  
-  
+
+
   // Init Transitive Reductive Matrix
   // Generate Closure firstly
-  
+
   timer.step("GenRedMat");
   // (x1,...,xk)<(y1,...,yk) iff x1<y1,...,xk<yk
-  
+
   timer.step("Create Transitive Closure");
   int i,j;
   if(rank_Mode!=3){
     int maskNum  = maskInd.n_elem;
     // We just need to create AdjMat for the masked projected p-values to save space
-    mat AdjMat=mat(maskNum, maskNum, fill::zeros);
+    arma::mat AdjMat=mat(maskNum, maskNum, fill::zeros);
   if(rank_Mode==1){
     //for(auto &i:maskInd){
     //for(auto &j:maskInd){
@@ -96,7 +96,7 @@ void JointMirror::InitData(){
       }
     }
   }
-  
+
   // (x1,...,xk)<(y1,...,yk) iff max(x1,...,xk)<max(y1,...,yk)
   if(rank_Mode==2){
     for(int isub=0;isub<maskNum;isub++){
@@ -110,38 +110,38 @@ void JointMirror::InitData(){
       }
     }
   }
-  
+
   // Otherwise (x1,...,xk) are not comparable; Turn to rankmode 3
   // Do not suggest
   // Re_Initilize
-  out_degree=vec(maskNum, fill::zeros);
-  in_degree=rowvec(maskNum, fill::zeros);
-  
+  out_degree=arma::vec(maskNum, fill::zeros);
+  in_degree=arma::rowvec(maskNum, fill::zeros);
+
   out_degree=sum(AdjMat,1);
   in_degree=sum(AdjMat,0);
-  
+
   timer.step("Create Transitive Reuction");
   //mat AdjMatSub = AdjMat()
   //AdjMat = AdjMat - ((AdjMat*AdjMat)!=0);
-  
+
   // Try to accelerate
-  uvec out_sort_ind = sort_index(out_degree,"descend");
-  uvec out_sort_ind_sort = sort_index(out_sort_ind,"ascend");
-  
+  arma::uvec out_sort_ind = sort_index(out_degree,"descend");
+  arma::uvec out_sort_ind_sort = sort_index(out_sort_ind,"ascend");
+
   AdjMat = AdjMat.cols(out_sort_ind);
-  
-  vec in_degree_col=conv_to< vec >::from(in_degree);
+
+  arma::vec in_degree_col=conv_to< arma::vec >::from(in_degree);
   in_degree_col = in_degree_col(out_sort_ind);
   //out_degree = out_degree(out_sort_ind);
-  
-  uvec withTransparentInd = find(in_degree_col>0);
-  uvec out_sort_ind_withTransparent = out_sort_ind(withTransparentInd);
-  mat AdjMatTrunc = AdjMat.cols(withTransparentInd);
-  mat AdjMatCopy=AdjMatTrunc;
+
+  arma::uvec withTransparentInd = find(in_degree_col>0);
+  arma::uvec out_sort_ind_withTransparent = out_sort_ind(withTransparentInd);
+  arma::mat AdjMatTrunc = AdjMat.cols(withTransparentInd);
+  arma::mat AdjMatCopy=AdjMatTrunc;
   // Only vertex has at least two children will have a transition path go through another vertex
-  uvec withTranschildInd = find(out_degree>1);
-  uvec iTransparentInd;
-  
+  arma::uvec withTranschildInd = find(out_degree>1);
+  arma::uvec iTransparentInd;
+
   timer.step("Create Transitive Reduction(Reordering)");
   //uvec withcpInd = find(out_degree!=0&&in_degree!=0);
   // Our establishment will be more efficient after reordering
@@ -149,7 +149,7 @@ void JointMirror::InitData(){
     // iTransparentInd = find(AdjMatTrunc.row(i)==1);
     // for(auto &j:iTransparentInd){
     //   for(auto &k:iTransparentInd){
-    //     // i->k (must stand) and k->j(only thing we need to check) 
+    //     // i->k (must stand) and k->j(only thing we need to check)
     //     // With stored matrix, we can jump from the loop quickly
     //     if(AdjMatCopy(k,j)==1){
     //       AdjMatTrunc(i,j)=0;
@@ -171,29 +171,29 @@ void JointMirror::InitData(){
       }
     }
   }
-  
+
   AdjMat.cols(withTransparentInd) = AdjMatTrunc;
   AdjMat = AdjMat.cols(out_sort_ind_sort); // Recover the previous index
-  
+
   timer.step("Create Transitive Reduction Degree");
   // Recalculate outdegree and in degree
-  out_degree=vec(m, fill::zeros);
-  in_degree=rowvec(m, fill::zeros);
-  
+  out_degree=arma::vec(m, fill::zeros);
+  in_degree=arma::rowvec(m, fill::zeros);
+
   out_degree(maskInd)=sum(AdjMat,1);
   in_degree(maskInd)=sum(AdjMat,0);
-  
+
   AdjMat_sp = sp_mat(AdjMat); // The row and column name is maskInd
   }else{
   // If rank mode is 3, adjmat is zero, i.e., no connection;
-    out_degree=vec(m, fill::zeros);
-    in_degree=rowvec(m, fill::zeros);
+    out_degree=arma::vec(m, fill::zeros);
+    in_degree=arma::rowvec(m, fill::zeros);
     //AdjMat_sp = sp_mat(m,m);
   }
   timer.step("GenDAG");
   //Rcpp::Rcout << "CreateDAG" <<  std::endl;
   createDAG();
-  
+
   timer.step("InitRej");
   //Rcpp::Rcout << "InitProbInRej" <<  std::endl;
   InitProbInRej(0);
@@ -208,33 +208,33 @@ void JointMirror::InitRejControl(){
     ControlCount += (1-RejSide(iterI));
   }
   FDP_est = (ControlCount+offset)/max(RejCount,1.0);
-  
+
   FDP_est_seq = ones(m);//*FDP_est;
 }
 
 void JointMirror::createDAG(){
-  uvec withchildInd = find(out_degree!=0);
-  uvec withparentInd = find(in_degree!=0);
+  arma::uvec withchildInd = find(out_degree!=0);
+  arma::uvec withparentInd = find(in_degree!=0);
   // Initlize according to the out degree and in degree
   timer.step("Create ChildSet");
   for(auto &i:withchildInd){
-    childInd.at(i) = uvec(out_degree(i));
+    childInd.at(i) = arma::uvec(out_degree(i));
   }
-  
+
   for(auto &i:withparentInd){
-    parentInd.at(i) = uvec(in_degree(i));
+    parentInd.at(i) = arma::uvec(in_degree(i));
   }
-  
+
   // Find the root index for DAG
   timer.step("Create RootIndex");
-  vec in_degree_col=conv_to< vec >::from(in_degree);
+  arma::vec in_degree_col=conv_to< arma::vec >::from(in_degree);
   rootInd = find((maskLogi==1)&&(in_degree_col==0));
   rootNum = sum((maskLogi==1)&&(in_degree_col==0));
   //Rcout<<sum(in_degree_col)<<endl;
   //Create DAG
-  uvec child_index(m,fill::zeros);
-  uvec parent_index(m,fill::zeros);
-  
+  arma::uvec child_index(m,fill::zeros);
+  arma::uvec parent_index(m,fill::zeros);
+
   timer.step("Create Sparse copy");
   sp_mat::const_iterator it     = AdjMat_sp.begin();
   sp_mat::const_iterator it_end = AdjMat_sp.end();
@@ -254,7 +254,7 @@ void JointMirror::createDAG(){
     child_index(row_cur)=child_index(row_cur)+1;
     parent_index(col_cur)=parent_index(col_cur)+1;
   }
-  
+
   // for(auto &i:maskInd){
   //   //Rcpp::Rcout << i <<  std::endl;
   //   //Rcpp::Rcout << find(AdjMat.row(i)!=0) <<  std::endl;
@@ -262,7 +262,7 @@ void JointMirror::createDAG(){
   //     childInd.at(i)=find(AdjMat_sp.row(i)!=0);
   //   }
   //   //Rcpp::Rcout << find(AdjMat.col(i)!=0) <<  std::endl;
-  //   
+  //
   //   if(in_degree(i)!=0){
   //   parentInd.at(i)=find(AdjMat_sp.col(i)!=0);
   //   }
@@ -276,7 +276,7 @@ void JointMirror::createDAG(){
 //Detele a root from root set
 //We may include new roots
 int JointMirror::UpdateRoot(int rm_rootind){
-  //Rcpp::Rcout << regspace<uvec>(0,unmaskNum-1) <<  std::endl;
+  //Rcpp::Rcout << regspace<arma::uvec>(0,unmaskNum-1) <<  std::endl;
   //Rcpp::Rcout << rootInd <<  std::endl;
   int newNum=0;
   int root_unmask_all = rootInd(rm_rootind);
@@ -285,15 +285,15 @@ int JointMirror::UpdateRoot(int rm_rootind){
   rootInd.erase(rm_rootind); // Remove from the root set
   // Unmask
   //Rcpp::Rcout << "Unmask" <<root_unmask_all<<  std::endl;
-  maskLogi(root_unmask_all) = 0; 
+  maskLogi(root_unmask_all) = 0;
   unmaskInd(unmaskNum) =root_unmask_all;
   unmaskNum = unmaskNum+1;
-  
+
   rootNum-=1;
   //Rcpp::Rcout << "After" <<rootInd<<  std::endl;
-  
+
   // Add new roots
-  uvec childind = childInd.at(root_unmask_all);
+  arma::uvec childind = childInd.at(root_unmask_all);
   //Rcpp::Rcout << "Add new" <<  childind<<std::endl;
   if(!childind.is_empty()){
     for(auto &iterI:childind){
@@ -312,14 +312,14 @@ int JointMirror::UpdateRoot(int rm_rootind){
 
 //Waiting:ChangeTheRangeOfIter
 void JointMirror::InitProbInRej(int startiter){
-  //Rcpp::Rcout << regspace<uvec>(0,unmaskNum-1) <<  std::endl;
+  //Rcpp::Rcout << regspace<arma::uvec>(0,unmaskNum-1) <<  std::endl;
   //Rcpp::Rcout << rootInd <<  std::endl;
-  uvec unmaskind = unmaskInd(regspace<uvec>(0,unmaskNum-1));
+  arma::uvec unmaskind = unmaskInd(regspace<arma::uvec>(0,unmaskNum-1));
   int rootind;
-  vec Distvec;
-  vec Kervec;
-  rowvec rootDistPval;
-  mat DiffDistPval;
+  arma::vec Distvec;
+  arma::vec Kervec;
+  arma::rowvec rootDistPval;
+  arma::mat DiffDistPval;
   for(int iterI=startiter;iterI<rootNum;iterI++){
     //Rcpp::Rcout << "iter "<<iterI<<" rootNum"<<rootNum<<"rootInd "<<rootInd <<  std::endl;
     rootind = rootInd.at(iterI);
@@ -346,7 +346,7 @@ void JointMirror::UpdateProbInRej(int oldrootNum,int removerootind, int RejInd){
   //vec Distvec = DistMat.col(removerootind);
   int orootind;
   double w_val;
-  
+
   for(int oldrootind=0;oldrootind<oldrootNum;oldrootind++){
     orootind = rootInd.at(oldrootind);
     w_val = normpdf(norm(DistPval.row(orootind)-DistPval.row(removerootind),2));
@@ -358,29 +358,28 @@ void JointMirror::UpdateProbInRej(int oldrootNum,int removerootind, int RejInd){
 
 void JointMirror::runJM(){
   int root_unmask_in,root_unmask_all;
-  int is_Rej;
   int newrootNum;
   int SearchInd=0;
   timer.step("InitData");
   InitData();
   //Rcpp::Rcout << "StartRun" <<  std::endl;
-  
+
   timer.step("StartRun");
   while(FDP_est>=fdr_level && RejCount>0){
     //Rcpp::Rcout << "Start Searching" << SearchInd<< std::endl;
     //Rcpp::Rcout << "rootInd: " << rootInd<< " "<<as<arma::uvec>(rootInd) << std::endl;
     root_unmask_in = ProbInRej(as<arma::uvec>(rootInd)).index_min();
     root_unmask_all = rootInd(root_unmask_in);
-    
+
     //Rcpp::Rcout <<"MinProj: "<<ProbInRej(as<arma::uvec>(rootInd)).min()<<" Pval: "<<PVal.row(root_unmask_all)<<" RejSide: "<<RejSide(root_unmask_all)<< std::endl;
-    
+
     RejCount -= RejSide(root_unmask_all);
     ControlCount -= (1-RejSide(root_unmask_all));
-    
+
     FDP_est = (ControlCount+offset)/max(RejCount,1.0);
     FDP_est_seq(root_unmask_all) = FDP_est;
     //Rcpp::Rcout<<"Root: "<<root_unmask_all << " RejCount: "<<RejCount<< " ControlCount: "<<ControlCount<< " FDP_est:"<<FDP_est<<  std::endl;
-    
+
     //Rcpp::Rcout << "Update Root Set" <<  std::endl;
     // Update Root Set
     newrootNum = UpdateRoot(root_unmask_in);
@@ -393,11 +392,11 @@ void JointMirror::runJM(){
       UpdateProbInRej(rootNum-newrootNum,root_unmask_all,RejSide(root_unmask_all));
     }
     SearchInd++;
-    
+
     //Rcpp::Rcout <<"FDP: "<<FDP_est<<" fdr_level:"<<fdr_level<< " UnmaskIn: " << root_unmask_all<<" RootNum:"<<rootNum<<" unmaskNum:"<<unmaskNum<<" NewRootNum:"<<newrootNum<< std::endl;
-    
+
   }
-  
+
   timer.step("EndRun");
   if(RejCount!=0){
     FDP_est_seq(find(maskLogi==1)).fill(FDP_est);
@@ -405,7 +404,7 @@ void JointMirror::runJM(){
 }
 
 void JointMirror::print(){
-  Rcpp::Rcout << "We reject "<<RejCount<<" hypothesises with the FDP estimates "<< 
+  Rcpp::Rcout << "We reject "<<RejCount<<" hypothesises with the FDP estimates "<<
     FDP_est<<" with offset "<< offset<< ". There are "<<
     ControlCount<<" hypothesis locating into the control region."<<  std::endl;
 }

@@ -1,6 +1,6 @@
 
 //#include "GadditiveModel_FullRank.hpp"
-#include "JointMirror.hpp"
+#include "JointMirror.h"
 
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -20,6 +20,6 @@ RCPP_MODULE(JOINTMIRROR){
   .method("excludeInd", &JointMirror::getexcludeInd)
   .method("getTime", &JointMirror::getTime)
   ;
-  
+
 }
 

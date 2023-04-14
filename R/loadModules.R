@@ -1,3 +1,4 @@
-# export is to export class
+#' Title
+#' @name JointMirrorCppObj.
 #' @export JointMirror JointMirror
 loadModule("JOINTMIRROR", TRUE)

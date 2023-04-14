@@ -5,9 +5,5 @@
 \alias{JMirror}
 \title{JMirror: A Package for Joint Mirror Procedure}
 \description{
-The JMirror package provides two important functions for implementing joint mirror procedure.
+The JMirror package provides two important functions for implementing joint mirror procedure: JointMirror.R and JointMirror.Qvalue.
 }
-\section{JMirror functions}{
-
-}
-

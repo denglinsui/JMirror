@@ -6,12 +6,13 @@ Authors@R:
     person("Linsui", "Deng", email="denglinsui@ruc.edu.cn", role = c("aut", "cre"))
 Maintainer: Linsui Deng <denglinsui@ruc.edu.cn>
 Description: This package includes a new statistical inference tool for detecting simultaneous signals.
-License: GPL-2 | GPL-3
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
-    dplyr,
     Rcpp, 
-    RcppArmadillo
+    kernelboot,
+    ks,
+    methods
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3

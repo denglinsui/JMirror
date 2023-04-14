@@ -50,6 +50,6 @@ JM.Product.Qval <- JointMirror.Qvalue(Pval,JM.Product.Res$JMirrorS)
 trgt.fdr.level <- 0.2
 FDP.est <- JM.Product.Qval$FDP.est.Total
 is.RejSide <- JM.Product.Qval$is.RejSide
-JM.Product.sel <- which(FDP.est<=trgt.fdr.level & is.RejSide==T)
+JM.Product.sel <- which(FDP.est<=trgt.fdr.level & is.RejSide)
 c(fdp(JM.Product.sel,H0),Pow(JM.Product.sel,H0))
 }
