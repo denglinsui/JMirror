@@ -6,11 +6,3 @@
 \description{
 Rcpp Object for conducting Joint Mirror Procedure.
 }
-\section{Fields}{
-
-\describe{
-\item{\code{mult}}{Multiply by another Double object \itemize{
-\item Parameter: Pval_ is the p-value matrix, Hker.inv.chol is the bandwidth matrix.
-}}
-}}
-
