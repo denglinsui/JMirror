@@ -41,7 +41,7 @@ trgt.fdr.level <- 0.2
 # Implementation suggested for single target fdr level
 JM.Product.Res <- JointMirror.R(Pval,rank.Mode = "Product",
                                 trgt.fdr.level=trgt.fdr.level)
-JM.Max.Res <- JointMirror.R(Pval),rank.Mode = "Max",
+JM.Max.Res <- JointMirror.R(Pval,rank.Mode = "Max",
                             trgt.fdr.level=trgt.fdr.level)
 JM.EmptyPoset.Res <- JointMirror.R(Pval,rank.Mode = "EmptyPoset",
                                    trgt.fdr.level=trgt.fdr.level)
