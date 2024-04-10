@@ -1,16 +1,23 @@
 # JMirror
 
-This R package is for large-scale inference for testing signals in several experiments simultaneously. 
+This package implements the joint mirror procedure in the paper: Joint Mirror Procedure: Controlling False Discovery Rate for Identifying Simultaneous Signals.
+
 
 # Installation
+You can install the development version of JMirror like so:
 
-```
+``` r
 library(devtools)
 devtools::install_github("https://github.com/denglinsui/JMirror")
 ```
 
 # Example 
-```
+
+This is a basic example of implementing our method. The input is a matrix of p-values, with columns corresponding to various experiments and rows to different SNPs. Thus, the element at position $(i,j)$ represents the p-value of the $i$-th SNP in the $j$-th experiment.
+
+The main function is: `JointMirror.R()`. One can specify the rank mode `Max`, `Product`, or `EmptyPoset`.
+
+``` r
 library(JMirror)
 
 set.seed(10)
