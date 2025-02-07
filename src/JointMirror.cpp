@@ -207,6 +207,7 @@ void JointMirror::InitRejControl(){
     RejCount += RejSide(iterI);
     ControlCount += (1-RejSide(iterI));
   }
+
   FDP_est = (ControlCount+offset)/max(RejCount,1.0);
 
   FDP_est_seq = ones(m);//*FDP_est;
@@ -365,7 +366,7 @@ void JointMirror::runJM(){
   //Rcpp::Rcout << "StartRun" <<  std::endl;
 
   timer.step("StartRun");
-  while(FDP_est>=fdr_level && RejCount>0){
+  while(FDP_est>fdr_level && RejCount>0){
     //Rcpp::Rcout << "Start Searching" << SearchInd<< std::endl;
     //Rcpp::Rcout << "rootInd: " << rootInd<< " "<<as<arma::uvec>(rootInd) << std::endl;
     root_unmask_in = ProbInRej(as<arma::uvec>(rootInd)).index_min();
@@ -376,8 +377,12 @@ void JointMirror::runJM(){
     RejCount -= RejSide(root_unmask_all);
     ControlCount -= (1-RejSide(root_unmask_all));
 
+
     FDP_est = (ControlCount+offset)/max(RejCount,1.0);
     FDP_est_seq(root_unmask_all) = FDP_est;
+
+    //Rcpp::Rcout << RejCount<<" "<<ControlCount <<" "<<FDP_est<< endl;
+    //Rcpp::Rcout<<root_unmask_all<<endl;
     //Rcpp::Rcout<<"Root: "<<root_unmask_all << " RejCount: "<<RejCount<< " ControlCount: "<<ControlCount<< " FDP_est:"<<FDP_est<<  std::endl;
 
     //Rcpp::Rcout << "Update Root Set" <<  std::endl;
