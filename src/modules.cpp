@@ -1,13 +1,10 @@
-
-//#include "GadditiveModel_FullRank.hpp"
 #include "JointMirror.h"
 
 
 // [[Rcpp::depends(RcppArmadillo)]]
-//RCPP_EXPOSED_CLASS(JOINTMIRROR)
-RCPP_MODULE(JOINTMIRROR){
+RCPP_MODULE(JOINTMIRRORMODE){
   class_<JointMirror>("JointMirror")
-  .constructor< mat, mat>()
+  .constructor<arma::mat, arma::mat>()
   .method("print", &JointMirror::print)
   .method("InitPara", &JointMirror::InitPara)
   .method("runJM", &JointMirror::runJM)
@@ -22,4 +19,3 @@ RCPP_MODULE(JOINTMIRROR){
   ;
 
 }
-

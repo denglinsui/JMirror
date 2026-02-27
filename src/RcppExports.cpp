@@ -12,10 +12,10 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 
-RcppExport SEXP _rcpp_module_boot_JOINTMIRROR();
+RcppExport SEXP _rcpp_module_boot_JOINTMIRRORMODE();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rcpp_module_boot_JOINTMIRROR", (DL_FUNC) &_rcpp_module_boot_JOINTMIRROR, 0},
+    {"_rcpp_module_boot_JOINTMIRRORMODE", (DL_FUNC) &_rcpp_module_boot_JOINTMIRRORMODE, 0},
     {NULL, NULL, 0}
 };
 

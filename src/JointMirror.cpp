@@ -1,10 +1,9 @@
-#include "JointMirror.h"
-
 // [[Rcpp::depends(RcppArmadillo)]]
+#include "JointMirror.h"
 
 JointMirror::JointMirror( arma::mat Pval_, arma::mat HMat_){
   PVal=Pval_;
-  ProjPval=min(PVal,1-PVal);
+  ProjPval=arma::min(PVal,1-PVal);
   HMat=HMat_;
 
   DistPval=ProjPval*HMat;

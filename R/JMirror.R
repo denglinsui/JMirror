@@ -5,10 +5,12 @@
 #'
 #'
 #'
-#' @import Rcpp
-#' @importFrom Rcpp loadModule
-#' @docType package
 #' @name JMirror
 #' @useDynLib JMirror, .registration=TRUE
-NULL
-#> NULL
+#' @importFrom Rcpp loadModule
+#' @rawNamespace export(JointMirror)
+"_PACKAGE"
+
+.onLoad <- function(libname, pkgname) {
+  Rcpp::loadModule("JOINTMIRRORMODE", what = TRUE)
+}

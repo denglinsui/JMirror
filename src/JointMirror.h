@@ -1,12 +1,11 @@
-#ifndef FUNCTIONAL_JOINTMIRROR_ALGORITHM
-#define FUNCTIONAL_JOINTMIRROR_ALGORITHM
-
 // [[Rcpp::depends(RcppArmadillo)]]
+#ifndef JMIRROR_JOINTMIRROR_H
+#define JMIRROR_JOINTMIRROR_H
+
 
 #include <RcppArmadillo.h>
 #include <Rcpp/Benchmark/Timer.h>
 #include <vector>
-//#include "OptionDefine.cpp"
 
 using namespace Rcpp;
 using namespace arma;
@@ -96,8 +95,8 @@ private:
 
 };
 
-#endif
 
+#endif
 
 
 
